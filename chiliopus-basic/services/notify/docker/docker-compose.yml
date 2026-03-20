@@ -1,0 +1,73 @@
+version: '3.9'
+
+name: chiliopus-platform
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: chiliopus-notify-api
+    env_file:
+      - ../.env  # Read .env from project root
+    environment:
+      SERVICE_ROLE: api
+      PORT: 3000
+      # API_KEY loaded from env_file (.env in project root)
+      # Igniquest SMTP Server Configuration
+      SMTP_HOST: ${SMTP_HOST:-mail.igniquest.com}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_SECURE: ${SMTP_SECURE:-true}
+      # SMTP_USER and SMTP_PASS loaded from env_file (.env in project root)
+      SMTP_FROM: ${SMTP_FROM:-no-reply@igniquest.com}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # Use external PostgreSQL container via host.docker.internal
+      DATABASE_URL: postgres://postgres:postgres@host.docker.internal:5432/chiliopus
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+      # Removed postgres dependency - using external container
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: chiliopus-notify-worker
+    env_file:
+      - ../.env  # Read .env from project root
+    environment:
+      SERVICE_ROLE: worker
+      # API_KEY loaded from env_file (.env in project root)
+      # Igniquest SMTP Server Configuration
+      SMTP_HOST: ${SMTP_HOST:-mail.igniquest.com}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_SECURE: ${SMTP_SECURE:-true}
+      # SMTP_USER and SMTP_PASS loaded from env_file (.env in project root)
+      SMTP_FROM: ${SMTP_FROM:-no-reply@igniquest.com}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # Use external PostgreSQL container via host.docker.internal
+      DATABASE_URL: postgres://postgres:postgres@host.docker.internal:5432/chiliopus
+    depends_on:
+      - redis
+      # Removed postgres dependency - using external container
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: chiliopus-notify-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # PostgreSQL service removed - using external container from docker-compose.postgres.yml
+  # Ensure chiliopus-postgres-sql container is running before starting API/worker
+
+volumes:
+  # Removed postgres_data - using external container
+  redis_data:

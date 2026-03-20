@@ -1,0 +1,249 @@
+openapi: 3.0.3
+info:
+  title: ChiliopusNotify API
+  description: Notification Service API for the Chiliopus Platform
+  version: 1.0.0
+
+servers:
+  - url: https://api.chiliopus.com
+    description: Production server
+  - url: http://localhost:3001
+    description: Development server
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+
+  /notify/email:
+    post:
+      summary: Send an email notification
+      description: Queues an email notification for asynchronous delivery.
+      tags:
+        - Notifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailNotificationRequest'
+      responses:
+        '200':
+          description: Notification queued successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+        '400':
+          description: Invalid request
+        '401':
+          description: Unauthorized
+
+  /notify/sms:
+    post:
+      summary: Send SMS notification
+      tags:
+        - Notifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SmsNotificationRequest'
+      responses:
+        '200':
+          description: SMS queued successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+
+  /notify/push:
+    post:
+      summary: Send push notification
+      tags:
+        - Notifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushNotificationRequest'
+      responses:
+        '200':
+          description: Push notification queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+
+  /notify/status/{jobId}:
+    get:
+      summary: Get notification status
+      tags:
+        - Notifications
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Notification status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationStatus'
+
+  /templates:
+    get:
+      summary: List templates
+      tags:
+        - Templates
+      responses:
+        '200':
+          description: List of templates
+
+  /templates/{templateId}:
+    get:
+      summary: Get template details
+      tags:
+        - Templates
+      parameters:
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: string
+
+  /webhooks/events:
+    post:
+      summary: Webhook endpoint for delivery events
+      tags:
+        - Webhooks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEvent'
+
+components:
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+
+  schemas:
+
+    EmailNotificationRequest:
+      type: object
+      required:
+        - to
+        - subject
+      properties:
+        to:
+          type: string
+          example: user@example.com
+        cc:
+          type: string
+        bcc:
+          type: string
+        subject:
+          type: string
+        template:
+          type: string
+        variables:
+          type: object
+          additionalProperties: true
+        html:
+          type: string
+        text:
+          type: string
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attachment'
+
+    SmsNotificationRequest:
+      type: object
+      required:
+        - phone
+        - message
+      properties:
+        phone:
+          type: string
+          example: "+919876543210"
+        message:
+          type: string
+
+    PushNotificationRequest:
+      type: object
+      required:
+        - deviceToken
+        - title
+        - message
+      properties:
+        deviceToken:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        data:
+          type: object
+
+    NotificationResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: queued
+        jobId:
+          type: string
+          example: notify_987123
+
+    NotificationStatus:
+      type: object
+      properties:
+        jobId:
+          type: string
+        status:
+          type: string
+          example: sent
+        channel:
+          type: string
+        recipient:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        sentAt:
+          type: string
+          format: date-time
+
+    Attachment:
+      type: object
+      properties:
+        filename:
+          type: string
+        content:
+          type: string
+        contentType:
+          type: string
+
+    WebhookEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          example: notification.sent
+        jobId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object

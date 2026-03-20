@@ -1,0 +1,27 @@
+name: Notify CI
+
+on:
+  push:
+    paths:
+      - "services/notify/**"
+      - ".github/workflows/notify.yml"
+  pull_request:
+    paths:
+      - "services/notify/**"
+      - ".github/workflows/notify.yml"
+
+jobs:
+  notify-ci:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/notify
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - run: npm run lint --if-present
+      - run: npm run build --if-present
+

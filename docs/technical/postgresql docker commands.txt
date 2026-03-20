@@ -1,0 +1,44 @@
+Create image and start container
+  docker-compose -f docker-compose.postgres.yml up -d
+
+Start/Stop container:
+ docker start chiliopus-postgres
+ docker stop chiliopus-postgres
+ 
+Remove Image
+  docker rm chiliopus-postgres
+
+View Logs
+ docker logs chiliopus-postgres
+ docker logs -f chiliopus-postgres  # Follow logs
+ 
+Remove container (data will be lost unless using volumes):
+docker stop chiliopus-postgres
+docker rm chiliopus-postgres
+
+
+Connect to PostgreSQL
+Using psql (inside container):
+    docker exec -it chiliopus-postgres psql -U postgres -d chiliopus_notify
+Using external tools:
+  Host: localhost
+  Port: 5432
+  Database: chiliopus_notify
+  Username: postgres
+  Password: postgres
+Test connection:
+  docker exec -it chiliopus-postgres psql -U postgres -d chiliopus_notify -c "SELECT version();"
+  
+Note: The volume mount for schema.sql will automatically initialize the database schema when the container first starts.
+Initialize database schema
+Method 1: Automatic (with docker-compose)
+If you use Option 3 with the volume mount, the schema is applied automatically on first start.
+Method 2: Manual initialization
+Step 1: Copy schema file into container:
+docker cp src/db/schema.sql chiliopus-postgres:/tmp/schema.sql
+Step 2: Execute schema:
+docker exec -i chiliopus-postgres psql -U postgres -d chiliopus_notify -f /tmp/schema.sql
+Method 3: Direct execution
+docker exec -i chiliopus-postgres psql -U postgres -d chiliopus_notify < src/db/schema.sql
+Or using PowerShell:
+Get-Content src/db/schema.sql | docker exec -i chiliopus-postgres psql -U postgres -d chiliopus_notify
