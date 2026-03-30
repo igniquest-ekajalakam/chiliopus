@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Certificate Ready</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <h1 style="color: #1d4ed8;">Your Certificate Is Ready</h1>
+  <p>Hello {{name}},</p>
+  <p>Your certificate is now available.</p>
+  <p><strong>Certificate Number:</strong> {{certificateNumber}}</p>
+  {{#if levelAchieved}}<p><strong>Level Achieved:</strong> {{levelAchieved}}</p>{{/if}}
+  <p style="text-align: center; margin: 30px 0;">
+    <a href="{{downloadUrl}}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Download Certificate</a>
+  </p>
+  <p style="margin-top: 30px; color: #6b7280;">Regards,<br>{{appName}}</p>
+</body>
+</html>
+
